@@ -1,7 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
-@import "@fontsource-variable/figtree";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -22,7 +21,7 @@
   --accent-foreground: oklch(0.205 0 0);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
+  --input: oklch(1 0 0);
   --ring: oklch(0.708 0 0);
   --chart-1: oklch(0.87 0 0);
   --chart-2: oklch(0.556 0 0);
@@ -38,6 +37,8 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  --clr-light-gray: #f5f5f5;
 }
 
 @theme inline {
@@ -87,6 +88,13 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+@theme {
+  --text-sm--line-height: 1.22;
+  --text-base--line-height: 1.22;
+  --text-lg--line-height: 1.22;
+  --text-xl--line-height: 1.22;
+}
+
 .dark {
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
@@ -130,5 +138,10 @@
   }
   html {
     @apply font-sans;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
   }
 }

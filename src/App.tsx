@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import CataloguePage from "./pages/CataloguePage";
-import Layout from "./components/Layout/Layout";
+import { CataloguePage } from "./pages/CataloguePage";
+import { Layout } from "./components/Layout/Layout";
 
 function App() {
   return (
