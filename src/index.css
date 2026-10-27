@@ -86,6 +86,8 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --color-light-gray: var(--clr-light-gray);
 }
 
 @theme {
@@ -127,6 +129,8 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+
+  --color-light-gray: #111111;
 }
 
 @layer base {
@@ -138,6 +142,7 @@
   }
   html {
     @apply font-sans;
+    line-height: 1.22;
   }
 
   button:not(:disabled),

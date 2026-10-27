@@ -1,5 +1,6 @@
-import { catalogueItems } from "../catalogue-items";
+import { catalogueProducts } from "@/types/mocks";
 import { formatPrice } from "@/utils/format-price";
+import { Link } from "react-router";
 import {
   Card,
   CardHeader,
@@ -7,34 +8,29 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 
-export interface Item {
-  id: number;
-  price: number;
-  title: string;
-  img: string;
-}
-
 export const CatalogueGrid = () => {
   return (
-    <div className="w-full flex flex-wrap gap-6">
-      {catalogueItems.map((item) => (
-        <Card
-          key={item.id}
-          size="sm"
-          className="grow max-w0/3 min-w-1/5"
-        >
-          <img
-            src={item.img}
-            className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm"
-          />
-          <CardHeader>
-            <CardTitle>{formatPrice(item.price)}</CardTitle>
-            <CardDescription className="text-ellipsis text-nowrap overflow-hidden">
-              {item.title}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      ))}
+    <div className="w-full">
+      <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
+        {catalogueProducts.map((product) => (
+          <Card
+            key={product.id}
+            size="sm"
+            render={<Link to={`/product/${product.id}`} />}
+          >
+            <img
+              src={product.image}
+              className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm"
+            />
+            <CardHeader>
+              <CardTitle>{formatPrice(product.price)}</CardTitle>
+              <CardDescription className="text-ellipsis text-nowrap overflow-hidden">
+                {product.title}
+              </CardDescription>
+            </CardHeader>
+          </Card>
+        ))}
+      </section>
     </div>
   );
 };
