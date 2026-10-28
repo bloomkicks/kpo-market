@@ -119,7 +119,7 @@ export const AddProductForm = ({
               <Input
                 id="product-price"
                 type="number"
-                className="min-w-24"
+                className="md:min-w-24"
                 min={1}
                 {...form.register("price")}
               />
@@ -132,7 +132,7 @@ export const AddProductForm = ({
               <Input
                 id="product-quantity"
                 type="number"
-                className="min-w-24"
+                className="md:min-w-24"
                 min={1}
                 max={99}
                 {...form.register("quantity")}

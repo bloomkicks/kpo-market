@@ -62,7 +62,7 @@ export const Header = () => {
             variant="noborder"
             className="md:min-w-92 max-w-md"
             placeholder="Найти товары"
-            type="search"
+            type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />

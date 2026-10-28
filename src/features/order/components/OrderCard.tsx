@@ -36,10 +36,6 @@ export const OrderCard = ({
           {formatPrice(price)}
         </strong>
       </p>
-      <p className="text-sm">
-        Стоимость доставки рассчитается на этапе оформления
-        заказа.
-      </p>
       {onSubmit ? (
         <Button
           size="lg"
