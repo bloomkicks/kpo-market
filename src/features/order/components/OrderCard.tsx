@@ -11,7 +11,6 @@ export const OrderCard = ({
   isPending,
 }: {
   button?: string;
-  // без onSubmit кнопка ведёт на страницу оформления
   onSubmit?: () => void;
   isPending?: boolean;
 }) => {

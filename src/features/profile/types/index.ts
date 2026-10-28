@@ -12,7 +12,6 @@ export interface Profile {
   updated_at: string;
 }
 
-// у пользователя может быть customer- и business-профиль одновременно
 export type ProfileResponse = Profile[]
 
 export interface EditProfileRequest {

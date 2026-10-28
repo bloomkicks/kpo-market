@@ -13,8 +13,6 @@ export const useOrder = () => {
   })
 }
 
-// orders принимает один товар на заказ — оформляем по заказу на каждую позицию корзины.
-// operationId — ключ идемпотентности: повтор того же запроса не создаст второй заказ
 export const useCheckout = () => {
   const queryClient = useQueryClient();
 

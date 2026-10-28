@@ -23,7 +23,6 @@ export const ProfilePage = () => {
 
   if (isLoading) return <Spinner className="mx-auto mt-8" />;
 
-  // профиль создаётся асинхронно после регистрации (через kafka), может ещё не появиться
   const profile = profiles?.length ? mainProfile(profiles) : null;
   if (isError || !profile)
     return (

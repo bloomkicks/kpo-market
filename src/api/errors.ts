@@ -1,6 +1,5 @@
 import { isAxiosError } from "axios"
 
-// текст ошибки для пользователя: сообщение бэка, если оно есть, иначе запасной текст по статусу
 export const errorMessage = (error: unknown, byStatus: Record<number, string> = {}) => {
   if (!isAxiosError(error)) return "Что-то пошло не так"
 

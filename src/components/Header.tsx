@@ -9,7 +9,7 @@ import {
 import { useCartStore } from "@/store/create-store";
 import { useAuthStore } from "@/store/auth-store";
 import { useLogout } from "@/features/auth/hooks/use-logout";
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type SubmitEvent } from "react";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 import { RegisterForm } from "@/features/auth/components/RegisterForm";
@@ -25,7 +25,6 @@ export const Header = () => {
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isRegisterOpen, setIsRegisterOpen] = useState(false);
 
-  // поиск — фильтр каталога через ?q=, поле синхронизировано с URL
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { pathname } = useLocation();
@@ -33,12 +32,15 @@ export const Header = () => {
   const [search, setSearch] = useState(urlQuery);
   useEffect(() => setSearch(urlQuery), [urlQuery]);
 
-  const onSearch = (e: FormEvent) => {
+  const onSearch = (e: SubmitEvent) => {
     e.preventDefault();
-    // в каталоге сохраняем остальные фильтры, с других страниц переходим в каталог только с поиском
-    const next = new URLSearchParams(pathname === "/" ? params : undefined);
+    const next = new URLSearchParams(
+      pathname === "/" ? params : undefined,
+    );
+
     if (search.trim()) next.set("q", search.trim());
     else next.delete("q");
+
     navigate({ pathname: "/", search: next.toString() });
   };
 
@@ -79,11 +81,16 @@ export const Header = () => {
           </Button>
         ) : (
           <div className="flex gap-x-4">
-            <Dialog open={isLoginOpen} onOpenChange={setIsLoginOpen}>
+            <Dialog
+              open={isLoginOpen}
+              onOpenChange={setIsLoginOpen}
+            >
               <DialogTrigger
                 render={<Button size="lg">Войти</Button>}
               />
-              <LoginForm onSuccess={() => setIsLoginOpen(false)} />
+              <LoginForm
+                onSuccess={() => setIsLoginOpen(false)}
+              />
             </Dialog>
             <Dialog
               open={isRegisterOpen}

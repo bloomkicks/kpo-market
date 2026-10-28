@@ -1,6 +1,5 @@
 import type { Product } from "@/types";
 
-// catalog отдаёт товар обёрнутым в { product }
 export type ProductResponse = { product: Product }
 
 export type ProductsResponse = { nextCursor?: string, products: ProductResponse[] }

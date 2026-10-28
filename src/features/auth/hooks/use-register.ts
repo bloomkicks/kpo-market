@@ -3,7 +3,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/api/client";
 import { useAuthStore } from "@/store/auth-store";
 
-// после регистрации сразу логинимся, чтобы пользователь не вводил данные второй раз
 export const useRegister = () => {
   const setTokens = useAuthStore((s) => s.setTokens);
   const queryClient = useQueryClient();

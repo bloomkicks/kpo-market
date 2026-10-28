@@ -67,11 +67,15 @@ export const ProductDetails = ({
         min={1}
       />
       {!!cartLine ? (
-        <Button size="lg" onClick={onRemoveFromCart}>
+        <Button
+          size="lg"
+          variant="outline"
+          onClick={onRemoveFromCart}
+        >
           Убрать из корзины
         </Button>
       ) : (
-        <div className="flex flex-col items-stretch gap-y-2">
+        <div className="w-full flex flex-col items-stretch gap-y-2">
           <Button size="lg" onClick={onAddToCart}>
             В корзину
           </Button>

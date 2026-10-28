@@ -4,7 +4,6 @@ import { formatDate } from "@/utils/format-date";
 import { Spinner } from "@/components/ui/spinner";
 import { useOrders } from "../hooks/use-orders";
 
-// profile отдаёт имя enum из gRPC-контракта orders (CREATED, FAILED, ...)
 const statusLabels: Record<string, string> = {
   created: "Обрабатывается",
   paid: "Оплачен",
@@ -38,12 +37,15 @@ export const ProfileOrders = () => {
                 >
                   Товар
                 </Link>{" "}
-                × {order.quantity}
+                x {order.quantity}
                 <p className="text-sm">
                   {formatDate(new Date(order.created_at))}
                 </p>
               </div>
-              <span>{statusLabels[order.status.toLowerCase()] ?? order.status}</span>
+              <span>
+                {statusLabels[order.status.toLowerCase()] ??
+                  order.status}
+              </span>
               <strong>{formatPrice(order.total_price)}</strong>
             </li>
           ))}

@@ -1,6 +1,5 @@
 import type { Profile } from "./types";
 
-// бизнес-профиль главнее: с ним пользователь работает как продавец
 export const mainProfile = (profiles: Profile[]) =>
   profiles.find((p) => p.profile_type === "business") ?? profiles[0];
 

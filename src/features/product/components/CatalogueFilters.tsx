@@ -44,12 +44,10 @@ export const CatalogueFilters = () => {
   const { sortBy, lowest, highest, query, update } =
     useCatalogueParams();
 
-  // верх слайдера — самый дорогой товар, округлённый вверх до тысячи
   const max = Math.max(1000, Math.ceil(maxPrice / 1000) * 1000);
   const from = lowest ?? 0;
   const to = highest ?? max;
 
-  // слайдер управляемый: пока тянем — локальное значение, в URL пишем по отпусканию
   const [range, setRange] = useState<number[]>([from, to]);
   useEffect(() => setRange([from, to]), [from, to]);
 
@@ -63,7 +61,10 @@ export const CatalogueFilters = () => {
   };
 
   const hasFilters =
-    !!query || sortBy !== "none" || lowest !== null || highest !== null;
+    !!query ||
+    sortBy !== "none" ||
+    lowest !== null ||
+    highest !== null;
 
   return (
     <section className="flex flex-col min-w-53">
@@ -77,7 +78,9 @@ export const CatalogueFilters = () => {
             items={sortOptions}
             value={sortBy}
             onValueChange={(value) =>
-              update({ "sort-by": value === "none" ? null : value })
+              update({
+                "sort-by": value === "none" ? null : value,
+              })
             }
           >
             <SelectTrigger>
@@ -120,7 +123,12 @@ export const CatalogueFilters = () => {
           <Button
             variant="outline"
             onClick={() =>
-              update({ q: null, "sort-by": null, lowest: null, highest: null })
+              update({
+                q: null,
+                "sort-by": null,
+                lowest: null,
+                highest: null,
+              })
             }
           >
             Сбросить фильтры

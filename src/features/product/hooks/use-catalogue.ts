@@ -4,7 +4,6 @@ import { useProducts } from "./use-products";
 
 export type SortBy = "none" | "price-descend" | "price-ascend" | "new"
 
-// фильтры живут в query-параметрах: q (поиск), sort-by, lowest, highest
 export const useCatalogueParams = () => {
   const [params, setParams] = useSearchParams();
 
@@ -28,8 +27,6 @@ export const useCatalogueParams = () => {
   };
 };
 
-// поиска и фильтров на бэке нет, поэтому всё считается на клиенте. Чтобы не искать
-// только по первой странице, при активном фильтре догружаем каталог целиком
 export const useCatalogue = () => {
   const products = useProducts();
   const { query, sortBy, lowest, highest } = useCatalogueParams();
@@ -63,7 +60,6 @@ export const useCatalogue = () => {
     products: filtered,
     maxPrice,
     isFiltered,
-    // пока догружаем каталог под фильтр, результат неполный
     isFilling: isFiltered && (hasNextPage || isFetchingNextPage),
   };
 };

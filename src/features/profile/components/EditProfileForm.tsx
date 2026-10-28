@@ -21,7 +21,6 @@ import { errorMessage } from "@/api/errors";
 import { useEditProfile } from "../hooks/use-edit-profile";
 import type { EditProfileRequest, Profile } from "../types";
 
-// ограничения повторяют ProfileUpdateRequest в profile; пустое поле — не меняем
 const editSchema = z.object({
   first_name: z.string().trim().max(100),
   last_name: z

@@ -5,7 +5,6 @@ import type { ProductResponse, ProductsResponse } from "../types";
 
 export const useProduct = (productId?: string) => {
   const queryClient = useQueryClient();
-  // GET /catalog/{id} в gateway закрыт авторизацией, гостю показываем товар из уже загруженного каталога
   const isAuth = useAuthStore((s) => !!s.tokens);
 
   return useQuery({
@@ -13,7 +12,6 @@ export const useProduct = (productId?: string) => {
     queryFn: async () => {
       const response = await api.get<ProductResponse>(`/catalog/${productId}`);
 
-      // несуществующий товар catalog отдаёт как 200 с пустым product
       return response.data.product?.title ? response.data.product : null;
     },
     initialData: () =>

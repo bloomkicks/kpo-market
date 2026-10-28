@@ -12,7 +12,6 @@ export interface AuthStore {
   logout(): void;
 }
 
-// роль кладёт в access-токен auth; подпись проверяет gateway, фронту достаточно прочитать payload
 const roleFromToken = (token: string): Role | null => {
   try {
     const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")
@@ -28,8 +27,6 @@ export const useAuthStore = create<AuthStore>()(
       tokens: null,
       role: null,
       setTokens: (tokens: Tokens) => set({ tokens, role: roleFromToken(tokens.access_token) }),
-      // корзина лежит в localStorage браузера, а не на бэке — без очистки следующий
-      // пользователь на этом устройстве увидит чужие товары
       logout: () => {
         useCartStore.getState().clear()
         set({ tokens: null, role: null })

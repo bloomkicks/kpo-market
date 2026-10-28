@@ -28,10 +28,7 @@ export const ProductPage = () => {
   return (
     <>
       <div className="flex gap-x-6 mb-6">
-        <ProductImage
-          url={product.url}
-          title={product.title}
-        />
+        <ProductImage url={product.url} title={product.title} />
         <ProductDetails product={product} />
       </div>
       <ProductDescription description={product.description} />

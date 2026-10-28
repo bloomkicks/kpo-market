@@ -15,8 +15,6 @@ export const useBalance = () => {
       return response.data
     },
     enabled: isAuth,
-    // списание и возврат делает сага уже после ответа POST /orders — обновляем баланс,
-    // пока заказы не дошли до финального статуса
     refetchInterval: () =>
       hasPendingOrders(queryClient.getQueryData<OrdersResponse>(['orders'])) ? 2000 : false,
   })

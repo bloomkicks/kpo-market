@@ -43,6 +43,7 @@ export const CatalogueGrid = () => {
             <Card
               key={product.productId}
               size="sm"
+              className="max-w-xl"
               render={
                 <Link to={`/product/${product.productId}`} />
               }

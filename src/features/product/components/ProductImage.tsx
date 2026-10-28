@@ -8,7 +8,7 @@ export const ProductImage = ({
   return (
     <section className="h-112">
       <img
-        className="bg-card-foreground/5 h-112 aspect-[0.931] rounded-sm"
+        className="bg-card-foreground/5 h-112 max-w-2/3 aspect-[1.12] rounded-sm object-cover"
         width="450px"
         height="396px"
         src={url}

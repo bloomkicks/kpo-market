@@ -8,11 +8,13 @@ export const api = axios.create({ baseURL })
 
 api.interceptors.request.use((config) => {
   const token = useAuthStore.getState().tokens?.access_token
-  if (token) config.headers.Authorization = `Bearer ${token}`
+
+  if (token)
+    config.headers.Authorization = `Bearer ${token}`
+
   return config
 })
 
-// один refresh на все запросы, упавшие с 401 одновременно
 let refreshing: Promise<string | null> | null = null
 
 export const refreshTokens = () => {

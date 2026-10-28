@@ -3,8 +3,6 @@ import { api } from '@/api/client';
 import { useAuthStore } from '@/store/auth-store';
 import type { OrdersResponse } from '../types';
 
-// заказ оплачивается асинхронно (сага в temporal): пока есть заказ в обработке,
-// перезапрашиваем заказы, чтобы увидеть итоговый статус
 export const hasPendingOrders = (orders?: OrdersResponse) =>
   !!orders?.some((order) => order.status.toLowerCase() === 'created')
 

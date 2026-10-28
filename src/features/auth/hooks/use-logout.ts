@@ -13,7 +13,7 @@ export const useLogout = () => {
       if (refresh_token)
         await api.post("/auth/logout", { refresh_token } satisfies LogoutRequest);
     },
-    // выходим локально, даже если отозвать refresh на бэке не получилось
+
     onSettled() {
       logout();
       queryClient.removeQueries({ queryKey: ["profile"] });
