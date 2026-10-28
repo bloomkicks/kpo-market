@@ -4,16 +4,23 @@ import { ProductDescription } from "@/features/product/components/ProductDescrip
 import { useProduct } from "@/features/product/hooks/use-product";
 import { useParams } from "react-router";
 import { Empty, EmptyHeader } from "@/components/ui/empty";
+import { Spinner } from "@/components/ui/spinner";
+import { useAuthStore } from "@/store/auth-store";
 
 export const ProductPage = () => {
   const { productId } = useParams();
-  const { data: product } = useProduct(productId);
+  const isAuth = useAuthStore((s) => !!s.tokens);
+  const { data: product, isLoading } = useProduct(productId);
+
+  if (isLoading) return <Spinner className="mx-auto mt-8" />;
 
   if (!product)
     return (
       <Empty>
         <EmptyHeader className="text-lg font-bold">
-          Товар не найден :D
+          {isAuth
+            ? "Товар не найден :D"
+            : "Войдите, чтобы открыть карточку товара"}
         </EmptyHeader>
       </Empty>
     );
@@ -27,7 +34,7 @@ export const ProductPage = () => {
         />
         <ProductDetails product={product} />
       </div>
-      <ProductDescription />
+      <ProductDescription description={product.description} />
     </>
   );
 };

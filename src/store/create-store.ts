@@ -12,6 +12,7 @@ export interface CartStore {
   addLine(product: Product, quantity: number): void;
   setQuantity(productId: string, quantity: number): void;
   removeLine(productId: string): void;
+  clear(): void;
 }
 
 export const useCartStore = create<CartStore>()(
@@ -29,6 +30,7 @@ export const useCartStore = create<CartStore>()(
       removeLine: (productId: string) => set((state) =>
         ({ lines: state.lines.filter(line => line.product.productId !== productId) })
       ),
+      clear: () => set({ lines: [] }),
       setQuantity: (productId: string, quantity: number) => set((state) => {
         if (quantity === 0)
           return { lines: state.lines.filter(line => line.product.productId !== productId) }

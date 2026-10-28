@@ -1,9 +1,57 @@
-import { profile } from "../types";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { AddProductForm } from "@/features/product/components/AddProductForm";
+import { useAuthStore } from "@/store/auth-store";
+import type { Profile } from "../types";
+import { BusinessForm } from "./BusinessForm";
+import { EditProfileForm } from "./EditProfileForm";
 
-export const ProfileActions = () => {
-  if (profile.profile_type === "business")
-    return <Button size="lg">Добавить товар</Button>;
+type DialogName = "edit" | "business" | "product";
 
-  return <Button size="lg">Зарегистрировать бизнес</Button>;
+export const ProfileActions = ({ profile }: { profile: Profile }) => {
+  const [openDialog, setOpenDialog] = useState<DialogName | null>(null);
+  const [isBusinessCreated, setIsBusinessCreated] = useState(false);
+  // ручки продавца смотрят на роль в токене, а не на наличие профиля
+  const isSeller = useAuthStore((s) => s.role === "business");
+
+  const dialogProps = (name: DialogName) => ({
+    open: openDialog === name,
+    onOpenChange: (open: boolean) => setOpenDialog(open ? name : null),
+  });
+  const close = () => setOpenDialog(null);
+
+  // роль business приходит, пока форма бизнеса ещё открыта (ждём её в токене) —
+  // не подменяем открытый диалог формой товара
+  const showBusiness = !isSeller || openDialog === "business";
+
+  return (
+    <div className="space-y-3">
+      {isBusinessCreated && isSeller && (
+        <p>Бизнес-профиль создан — теперь можно добавлять товары.</p>
+      )}
+      <div className="flex gap-x-4">
+        <Dialog key="edit" {...dialogProps("edit")}>
+          <DialogTrigger render={<Button size="lg" variant="outline">Редактировать профиль</Button>} />
+          <EditProfileForm profile={profile} onSuccess={close} />
+        </Dialog>
+        {showBusiness ? (
+          <Dialog key="business" {...dialogProps("business")}>
+            <DialogTrigger render={<Button size="lg">Зарегистрировать бизнес</Button>} />
+            <BusinessForm
+              onSuccess={() => {
+                setIsBusinessCreated(true);
+                close();
+              }}
+            />
+          </Dialog>
+        ) : (
+          <Dialog key="product" {...dialogProps("product")}>
+            <DialogTrigger render={<Button size="lg">Добавить товар</Button>} />
+            <AddProductForm onSuccess={close} />
+          </Dialog>
+        )}
+      </div>
+    </div>
+  );
 };

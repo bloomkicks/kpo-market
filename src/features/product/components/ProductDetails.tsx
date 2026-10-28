@@ -1,8 +1,6 @@
 import { Button } from "@/components/ui/button";
-import { Empty } from "@/components/ui/empty";
 import { useState } from "react";
 import { formatPrice } from "@/utils/format-price";
-// import starImg from "@/assets/star.svg";
 import { AmountField } from "@/components/AmountField";
 import { useCartStore } from "@/store/create-store";
 import type { Product } from "@/types";
@@ -60,31 +58,6 @@ export const ProductDetails = ({
       <p className="font-bold text-2xl mb-2">
         {formatPrice(product.price)}
       </p>
-      {/* <div className="flex items-center gap-x-2.5 text-lg mb-5">
-        <div className="flex items-center gap-x-2">
-          <img className="w-9 h-9" src={starImg} alt="" />
-          <p className="font-bold text-lg">
-            {productDetails.review_value}
-          </p>
-        </div>
-        <p className="text-lg">{productDetails.review_amount}</p>
-      </div> */}
-      {/* <p className="mb-2">Размер:</p>
-      <div className="flex gap-x-3.5 mb-5">
-        {productDetails.sizes.map((size) => (
-          <Button
-            className="text-lg px-5 py-1.5 border-none aria-pressed:ring-1 aria-pressed:ring-border"
-            onClick={() => {
-              setCurSize(size);
-            }}
-            variant="secondary"
-            aria-pressed={size === curSize}
-            key={size}
-          >
-            {size}
-          </Button>
-        ))}
-      </div> */}
       <p className="mb-2">Количество:</p>
       <AmountField
         className="mb-5"

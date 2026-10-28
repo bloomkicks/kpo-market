@@ -10,6 +10,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import { useLogin } from "../hooks/use-login";
+import { errorMessage } from "@/api/errors";
+import { Spinner } from "@/components/ui/spinner";
 import { EyeSlashIcon, EyeIcon } from "@phosphor-icons/react";
 import {
   DialogContent,
@@ -25,7 +28,8 @@ const loginSchema = z.object({
 });
 type LoginData = z.infer<typeof loginSchema>;
 
-export const LoginForm = () => {
+export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const mutation = useLogin();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -36,7 +40,7 @@ export const LoginForm = () => {
   });
 
   const onLogin = (data: LoginData) => {
-    console.log(data);
+    mutation.mutate(data, { onSuccess });
   };
 
   return (
@@ -52,7 +56,7 @@ export const LoginForm = () => {
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field onClick={() => console.log(field)}>
+              <Field>
                 <FieldLabel htmlFor="login-email">
                   E-mail
                 </FieldLabel>
@@ -77,6 +81,7 @@ export const LoginForm = () => {
                   {isShowingPass ? (
                     <Button
                       onClick={() => setIsShowingPass(false)}
+                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -85,6 +90,7 @@ export const LoginForm = () => {
                   ) : (
                     <Button
                       onClick={() => setIsShowingPass(true)}
+                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -104,11 +110,18 @@ export const LoginForm = () => {
               </Field>
             )}
           />
+          {mutation.isError && (
+            <FieldError>
+              {errorMessage(mutation.error, { 401: "Неверная почта или пароль" })}
+            </FieldError>
+          )}
           <DialogFooter>
             <DialogClose
               render={<Button variant="outline">Отмена</Button>}
             />
-            <Button type="submit">Войти</Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? <Spinner /> : "Войти"}
+            </Button>
           </DialogFooter>
         </FieldGroup>
       </form>

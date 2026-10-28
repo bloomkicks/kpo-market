@@ -2,7 +2,7 @@ export const ProductImage = ({
   url,
   title,
 }: {
-  url: string;
+  url?: string;
   title: string;
 }) => {
   return (

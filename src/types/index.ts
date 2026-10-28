@@ -5,11 +5,11 @@ export interface PaginationParams {
 export interface Product {
   productId: string;
   title: string;
-  description: string;
+  description?: string;
   price: number;
   updatedAt: string;
   createdAt: string;
-  url: string;
+  url?: string;
 }
 
 // export interface Profile {

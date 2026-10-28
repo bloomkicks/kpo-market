@@ -3,11 +3,17 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router";
 import { useCartStore } from "@/store/create-store";
+import { Spinner } from "@/components/ui/spinner";
 
 export const OrderCard = ({
   button = "Перейти к оформлению",
+  onSubmit,
+  isPending,
 }: {
   button?: string;
+  // без onSubmit кнопка ведёт на страницу оформления
+  onSubmit?: () => void;
+  isPending?: boolean;
 }) => {
   const lines = useCartStore((s) => s.lines);
   let price = 0;
@@ -35,15 +41,26 @@ export const OrderCard = ({
         Стоимость доставки рассчитается на этапе оформления
         заказа.
       </p>
-      <Button
-        render={<Link to="/order" />}
-        nativeButton={false}
-        size="lg"
-        className="w-full h-10 py-3 text-base border-0"
-        disabled={!lines.length}
-      >
-        {button}
-      </Button>
+      {onSubmit ? (
+        <Button
+          size="lg"
+          className="w-full h-10 py-3 text-base border-0"
+          disabled={!lines.length || isPending}
+          onClick={onSubmit}
+        >
+          {isPending ? <Spinner /> : button}
+        </Button>
+      ) : (
+        <Button
+          render={<Link to="/order" />}
+          nativeButton={false}
+          size="lg"
+          className="w-full h-10 py-3 text-base border-0"
+          disabled={!lines.length}
+        >
+          {button}
+        </Button>
+      )}
     </section>
   );
 };

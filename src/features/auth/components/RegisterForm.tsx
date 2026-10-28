@@ -18,6 +18,9 @@ import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { useState } from "react";
+import { useRegister } from "../hooks/use-register";
+import { errorMessage } from "@/api/errors";
+import { Spinner } from "@/components/ui/spinner";
 
 const registerSchema = z.object({
   email: z.email("Некорректный адрес почты"),
@@ -37,7 +40,8 @@ const registerSchema = z.object({
 });
 type RegisterData = z.infer<typeof registerSchema>;
 
-export const RegisterForm = () => {
+export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const mutation = useRegister();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
@@ -48,7 +52,7 @@ export const RegisterForm = () => {
   });
 
   const onRegister = (data: RegisterData) => {
-    console.log(data);
+    mutation.mutate(data, { onSuccess });
   };
 
   return (
@@ -64,7 +68,7 @@ export const RegisterForm = () => {
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field onClick={() => console.log(field)}>
+              <Field>
                 <FieldLabel htmlFor="register-email">
                   E-mail
                 </FieldLabel>
@@ -89,6 +93,7 @@ export const RegisterForm = () => {
                   {isShowingPass ? (
                     <Button
                       onClick={() => setIsShowingPass(false)}
+                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -97,6 +102,7 @@ export const RegisterForm = () => {
                   ) : (
                     <Button
                       onClick={() => setIsShowingPass(true)}
+                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -116,11 +122,18 @@ export const RegisterForm = () => {
               </Field>
             )}
           />
+          {mutation.isError && (
+            <FieldError>
+              {errorMessage(mutation.error, { 409: "Пользователь с такой почтой уже существует" })}
+            </FieldError>
+          )}
           <DialogFooter>
             <DialogClose
               render={<Button variant="outline">Отмена</Button>}
             />
-            <Button type="submit">Зарегистрироваться</Button>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? <Spinner /> : "Зарегистрироваться"}
+            </Button>
           </DialogFooter>
         </FieldGroup>
       </form>

@@ -12,10 +12,13 @@ import {
   Select,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useProducts } from "../hooks/use-products";
-import { useSearchParams } from "react-router";
-import { productsData } from "../types";
+import { Button } from "@/components/ui/button";
 import { formatPrice } from "@/utils/format-price";
+import { useEffect, useState } from "react";
+import {
+  useCatalogue,
+  useCatalogueParams,
+} from "../hooks/use-catalogue";
 
 const sortOptions = [
   {
@@ -37,38 +40,30 @@ const sortOptions = [
 ];
 
 export const CatalogueFilters = () => {
-  const { data: productsDat } = useProducts();
-  const [params, setParams] = useSearchParams();
-  let max = 10000;
-  // productsData?.pages.flatMap((page) =>
-  //   page.products.forEach((product) => {
-  //     if (product.price > max) max = product.price;
-  //   }),
-  productsData?.forEach((product) => {
-    if (product.price > max) max = product.price;
-  });
+  const { maxPrice } = useCatalogue();
+  const { sortBy, lowest, highest, query, update } =
+    useCatalogueParams();
 
-  const sortBy = params.get("sort-by");
-  const lowestPrice = Number(params.get("lowest") ?? 0);
-  const highestPrice = Number(params.get("highest") ?? max);
+  // верх слайдера — самый дорогой товар, округлённый вверх до тысячи
+  const max = Math.max(1000, Math.ceil(maxPrice / 1000) * 1000);
+  const from = lowest ?? 0;
+  const to = highest ?? max;
 
-  const onChangeSort = (value: string | null) => {
-    if (!value) return;
-
-    setParams((prev) => {
-      prev.set("sort-by", value);
-      return prev;
-    });
-  };
+  // слайдер управляемый: пока тянем — локальное значение, в URL пишем по отпусканию
+  const [range, setRange] = useState<number[]>([from, to]);
+  useEffect(() => setRange([from, to]), [from, to]);
 
   const onChangePrice = (value: number | readonly number[]) => {
     if (!Array.isArray(value)) return;
-    setParams((prev) => {
-      prev.set("lowest", value[0].toString());
-      prev.set("highest", value[1].toString());
-      return prev;
+    const [low, high] = value as number[];
+    update({
+      lowest: low > 0 ? String(low) : null,
+      highest: high < max ? String(high) : null,
     });
   };
+
+  const hasFilters =
+    !!query || sortBy !== "none" || lowest !== null || highest !== null;
 
   return (
     <section className="flex flex-col min-w-53">
@@ -80,9 +75,10 @@ export const CatalogueFilters = () => {
           <Select
             id="filters-sort"
             items={sortOptions}
-            defaultValue="none"
-            value={sortBy || "none"}
-            onValueChange={onChangeSort}
+            value={sortBy}
+            onValueChange={(value) =>
+              update({ "sort-by": value === "none" ? null : value })
+            }
           >
             <SelectTrigger>
               <SelectValue />
@@ -105,18 +101,31 @@ export const CatalogueFilters = () => {
           <FieldLabel htmlFor="filters-price">
             <span className="block mr-auto">Цена</span>
             <span>
-              от {lowestPrice} до{" "}
-              {formatPrice(highestPrice, true)}
+              от {formatPrice(range[0], true)} до{" "}
+              {formatPrice(range[1], true)}
             </span>
           </FieldLabel>
           <Slider
             id="filters-price"
-            defaultValue={[lowestPrice, highestPrice]}
+            value={range}
+            onValueChange={(value) =>
+              Array.isArray(value) && setRange(value as number[])
+            }
             onValueCommitted={onChangePrice}
             max={max}
-            step={1}
+            step={10}
           />
         </Field>
+        {hasFilters && (
+          <Button
+            variant="outline"
+            onClick={() =>
+              update({ q: null, "sort-by": null, lowest: null, highest: null })
+            }
+          >
+            Сбросить фильтры
+          </Button>
+        )}
       </FieldGroup>
     </section>
   );

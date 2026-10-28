@@ -1,15 +1,27 @@
 import { api } from "@/api/client";
-import { useQuery } from "@tanstack/react-query";
-import type { ProductResponse } from "../types";
+import { useAuthStore } from "@/store/auth-store";
+import { useQuery, useQueryClient, type InfiniteData } from "@tanstack/react-query";
+import type { ProductResponse, ProductsResponse } from "../types";
 
 export const useProduct = (productId?: string) => {
+  const queryClient = useQueryClient();
+  // GET /catalog/{id} в gateway закрыт авторизацией, гостю показываем товар из уже загруженного каталога
+  const isAuth = useAuthStore((s) => !!s.tokens);
+
   return useQuery({
     queryKey: ["product", productId],
     queryFn: async () => {
       const response = await api.get<ProductResponse>(`/catalog/${productId}`);
 
-      return response.data;
+      // несуществующий товар catalog отдаёт как 200 с пустым product
+      return response.data.product?.title ? response.data.product : null;
     },
-    enabled: !!productId
+    initialData: () =>
+      queryClient
+        .getQueryData<InfiniteData<ProductsResponse>>(["products"])
+        ?.pages.flatMap((page) => page.products)
+        .find((item) => item.product.productId === productId)?.product,
+    initialDataUpdatedAt: 0,
+    enabled: !!productId && isAuth
   });
 };
