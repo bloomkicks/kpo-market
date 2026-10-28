@@ -50,7 +50,7 @@ export const CatalogueGrid = () => {
             >
               <img
                 src={product.url}
-                className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm"
+                className="bg-card-foreground/5 h-58 max-w-xl ratio-[0.931] rounded-sm"
               />
               <CardHeader>
                 <CardTitle>

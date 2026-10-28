@@ -96,7 +96,7 @@ export const AddProductForm = ({
             </FieldLabel>
             <Input
               id="product-title"
-              className="min-w-24"
+              className="min-w-24 md:min-w-24"
               {...form.register("title")}
             />
             <FieldError errors={[errors.title]} />
@@ -107,7 +107,7 @@ export const AddProductForm = ({
             </FieldLabel>
             <Input
               id="product-description"
-              className="min-w-24"
+              className="min-w-24 md:min-w-24"
               {...form.register("description")}
             />
           </Field>
@@ -119,7 +119,7 @@ export const AddProductForm = ({
               <Input
                 id="product-price"
                 type="number"
-                className="md:min-w-24"
+                className="min-w-24 md:min-w-24"
                 min={1}
                 {...form.register("price")}
               />
@@ -132,7 +132,7 @@ export const AddProductForm = ({
               <Input
                 id="product-quantity"
                 type="number"
-                className="md:min-w-24"
+                className="min-w-24 md:min-w-24"
                 min={1}
                 max={99}
                 {...form.register("quantity")}
