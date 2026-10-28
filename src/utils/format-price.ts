@@ -1,7 +1,7 @@
-export function formatPrice(price: number): string {
+export function formatPrice(price: number, hideFraction?: boolean): string {
   return Intl.NumberFormat('ru-RU', {
     style: 'currency',
     currency: 'RUB',
-    maximumFractionDigits: 2
+    maximumFractionDigits: hideFraction ? 0 : 2
   }).format(price)
 }

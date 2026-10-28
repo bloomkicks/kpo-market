@@ -1,5 +1,5 @@
-import { CatalogueGrid } from "@/features/catalogue/components/CatalogueGrid";
-import { CatalogueFilters } from "@/features/catalogue/components/CatalogueFilters";
+import { CatalogueGrid } from "@/features/product/components/CatalogueGrid";
+import { CatalogueFilters } from "@/features/product/components/CatalogueFilters";
 
 export const CataloguePage = () => {
   return (

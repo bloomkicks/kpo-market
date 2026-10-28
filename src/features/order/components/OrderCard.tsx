@@ -2,19 +2,19 @@ import { formatPrice } from "@/utils/format-price";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Link } from "react-router";
-import { useCartStore } from "@/store/createStore";
+import { useCartStore } from "@/store/create-store";
 
 export const OrderCard = ({
   button = "Перейти к оформлению",
 }: {
   button?: string;
 }) => {
-  const items = useCartStore((state) => state.items);
+  const lines = useCartStore((s) => s.lines);
   let price = 0;
   let amount = 0;
-  items.forEach((item) => {
-    price += item.product.price * item.amount;
-    amount += item.amount;
+  lines.forEach((line) => {
+    price += line.product.price * line.quantity;
+    amount += line.quantity;
   });
 
   return (
@@ -40,6 +40,7 @@ export const OrderCard = ({
         nativeButton={false}
         size="lg"
         className="w-full h-10 py-3 text-base border-0"
+        disabled={!lines.length}
       >
         {button}
       </Button>

@@ -1,4 +1,5 @@
-import { profile } from "@/types/mocks";
+import { profile } from "../types";
+import { formatDate } from "@/utils/format-date";
 
 export const ProfileCard = () => {
   return (
@@ -7,31 +8,27 @@ export const ProfileCard = () => {
       <div className="flex *:w-1/2">
         <div>
           <p className="text-sm mb-2">Имя и фамилия</p>
-          <p>{profile.full_name}</p>
+          <p>
+            {profile.first_name} {profile.last_name}
+          </p>
         </div>
         <div>
-          <p className="text-sm mb-2">Email</p>
-          <p>{profile.email}</p>
+          <p className="text-sm mb-2">Тип профиля</p>
+          <p>
+            {profile.profile_type === "business"
+              ? "Бизнес"
+              : "Обычный"}
+          </p>
         </div>
       </div>
       <div className="flex *:w-1/2">
         <div>
           <p className="text-sm mb-2">Телефон</p>
-          <p>{profile.phone_number}</p>
+          <p>{profile.phone}</p>
         </div>
         <div>
-          <p className="text-sm mb-2">Пункт выдачи заказа</p>
-          <p>{profile.address}</p>
-        </div>
-      </div>
-      <div className="flex *:w-1/2">
-        <div>
-          <p className="text-sm mb-2">Город</p>
-          <p>{profile.city}</p>
-        </div>
-        <div>
-          <p className="text-sm mb-2">Язык интерфейса</p>
-          <p>Русский</p>
+          <p className="text-sm mb-2">Вы с нами с </p>
+          <p>{formatDate(new Date(profile.created_at))}</p>
         </div>
       </div>
     </section>

@@ -1,10 +1,17 @@
 import { Separator } from "@/components/ui/separator";
 import { CartItem } from "./CartItem";
 import { Fragment } from "react";
-import { useCartStore } from "@/store/createStore";
+import { useCartStore } from "@/store/create-store";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router";
+import {
+  Empty,
+  EmptyHeader,
+  EmptyContent,
+} from "@/components/ui/empty";
 
 export const CartItems = () => {
-  const items = useCartStore((state) => state.items);
+  const lines = useCartStore((state) => state.lines);
 
   return (
     <section className="w-full ring-1 ring-border rounded-lg p-6">
@@ -12,12 +19,30 @@ export const CartItems = () => {
         Товары в корзине
       </h3>
       <div className="space-y-5">
-        {items.map((item, i, arr) => (
-          <Fragment key={item.product.id}>
-            <CartItem {...item.product} amount={item.amount} />
-            {i < arr.length - 1 ? <Separator /> : null}
-          </Fragment>
-        ))}
+        {!!lines.length ? (
+          lines.map((line, i, arr) => (
+            <Fragment key={line.product.productId}>
+              <CartItem
+                {...line.product}
+                quantity={line.quantity}
+              />
+              {i < arr.length - 1 ? <Separator /> : null}
+            </Fragment>
+          ))
+        ) : (
+          <Empty>
+            <EmptyHeader className="text-lg font-bold">
+              Корзина пуста
+            </EmptyHeader>
+            <EmptyContent>
+              <Link to="/">
+                <Button variant="link" size="default">
+                  Перейти к покупкам
+                </Button>
+              </Link>
+            </EmptyContent>
+          </Empty>
+        )}
       </div>
     </section>
   );

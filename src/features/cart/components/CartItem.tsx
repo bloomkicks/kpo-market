@@ -1,22 +1,22 @@
 import type { Product } from "@/types";
 import { AmountField } from "@/components/AmountField";
 import { formatPrice } from "@/utils/format-price";
-import { useCartStore } from "@/store/createStore";
+import { useCartStore } from "@/store/create-store";
 
 export const CartItem = ({
-  id,
-  image,
+  productId,
+  url,
   title,
   price,
-  amount,
-}: Product & { amount: number }) => {
-  const setAmount = useCartStore((state) => state.setAmount);
+  quantity,
+}: Product & { quantity: number }) => {
+  const setQuantity = useCartStore((state) => state.setQuantity);
 
   return (
     <div className="flex items-center gap-x-4">
       <img
         className="bg-card-foreground/5 rounded-sm"
-        src={image}
+        src={url}
         alt=""
         width="84px"
         height="88px"
@@ -26,15 +26,15 @@ export const CartItem = ({
         <p className="text-sm">{formatPrice(price)} за шт.</p>
       </div>
       <AmountField
-        amount={amount}
-        onPlus={() => setAmount(id, amount + 1)}
-        onMinus={() => setAmount(id, amount - 1)}
+        amount={quantity}
+        onPlus={() => setQuantity(productId, quantity + 1)}
+        onMinus={() => setQuantity(productId, quantity - 1)}
       />
       <div className="w-28 text-right">
         <p className="text-lg mb-2">
-          {formatPrice(price * amount)}
+          {formatPrice(price * quantity)}
         </p>
-        <p className="text-sm">{amount} шт.</p>
+        <p className="text-sm">{quantity} шт.</p>
       </div>
     </div>
   );

@@ -5,6 +5,7 @@ type AmountInputProps = React.ComponentProps<"div"> & {
   amount: number;
   onPlus: () => void;
   onMinus: () => void;
+  min?: number;
 };
 
 export const AmountField = ({
@@ -12,6 +13,7 @@ export const AmountField = ({
   amount,
   onPlus,
   onMinus,
+  min,
   ...props
 }: AmountInputProps) => {
   return (
@@ -26,6 +28,7 @@ export const AmountField = ({
         variant="secondary"
         className="h-full w-9 border-none rounded-none py-3.5 text-base"
         onClick={onMinus}
+        disabled={amount === min}
       >
         -
       </Button>
