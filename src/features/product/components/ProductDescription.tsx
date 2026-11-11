@@ -1,7 +1,7 @@
 export const ProductDescription = ({
   description,
 }: {
-  description?: string;
+  description: string;
 }) => {
   return (
     <section>

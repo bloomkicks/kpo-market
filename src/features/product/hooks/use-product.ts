@@ -7,9 +7,9 @@ export const useProduct = (productId?: string) => {
     queryKey: ["product", productId],
     queryFn: async () => {
       const response = await api.get<ProductResponse>(`/catalog/${productId}`);
-
       return response.data;
     },
-    enabled: !!productId
+    enabled: !!productId,
+    select: (data) => data.product
   });
 };

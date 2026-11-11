@@ -19,7 +19,7 @@ export const AmountField = ({
   return (
     <div
       className={cn(
-        "flex items-center w-min h-10 gap-x-2 rounded-lg overflow-hidden border border-border text-lg",
+        "flex items-center w-fit h-10 gap-x-2 rounded-lg overflow-hidden border border-border text-lg",
         className,
       )}
       {...props}

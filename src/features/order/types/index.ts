@@ -12,7 +12,7 @@ export interface Order {
 }
 
 export interface OrderRequest {
-  operationId: string;
+  operationId?: string;
   productId: string;
   quantity: number;
 }

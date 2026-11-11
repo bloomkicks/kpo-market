@@ -1,3 +1,4 @@
+import { toast } from "@/components/ui/toast";
 import {
   DialogContent,
   DialogHeader,
@@ -14,10 +15,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import * as z from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useId, useRef } from "react";
+import { useRegister } from "../hooks/use-register";
+import axios from "axios";
+import type { ErrorResponse } from "@/types";
 
 const registerSchema = z.object({
   email: z.email("Некорректный адрес почты"),
@@ -37,7 +41,12 @@ const registerSchema = z.object({
 });
 type RegisterData = z.infer<typeof registerSchema>;
 
-export const RegisterForm = () => {
+export const RegisterForm = ({
+  onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const id = useId();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
@@ -47,8 +56,25 @@ export const RegisterForm = () => {
     },
   });
 
+  const register = useRegister();
+
   const onRegister = (data: RegisterData) => {
-    console.log(data);
+    register.mutate(data, {
+      onSuccess() {
+        onClose();
+      },
+      // onError(error) {
+      //   if (axios.isAxiosError<ErrorResponse>(error))
+      //     toast.add({
+      //       type: "error",
+      //       title: "Неудача",
+      //       description:
+      //         (axios.isAxiosError<ErrorResponse>(error) &&
+      //           error.response?.data.error) ??
+      //         error.message,
+      //     });
+      // },
+    });
   };
 
   return (
@@ -58,20 +84,24 @@ export const RegisterForm = () => {
           Регистрация
         </DialogTitle>
       </DialogHeader>
-      <form onSubmit={form.handleSubmit(onRegister)}>
+      <form noValidate onSubmit={form.handleSubmit(onRegister)}>
         <FieldGroup>
           <Controller
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field onClick={() => console.log(field)}>
-                <FieldLabel htmlFor="register-email">
+              <Field>
+                <FieldLabel htmlFor={`${id}-email`}>
                   E-mail
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="register-email"
+                  type="email"
+                  id={`${id}-email`}
+                  autoComplete="email"
                   placeholder="Ваша почта"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -84,7 +114,7 @@ export const RegisterForm = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="register-password">
+                <FieldLabel htmlFor={`${id}-password`}>
                   Пароль
                   {isShowingPass ? (
                     <Button
@@ -106,9 +136,12 @@ export const RegisterForm = () => {
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="register-password"
-                  placeholder="Ваш пароль"
+                  id={`${id}-password`}
                   type={isShowingPass ? "text" : "password"}
+                  autoComplete="off"
+                  placeholder="Ваш пароль"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

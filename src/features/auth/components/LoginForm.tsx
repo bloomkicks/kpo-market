@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 import {
   FieldGroup,
   Field,
@@ -9,8 +9,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
+import { useState, useId, useRef } from "react";
 import { EyeSlashIcon, EyeIcon } from "@phosphor-icons/react";
+import { useLogin } from "../hooks/use-login";
+import { toast } from "@/components/ui/toast";
+import axios from "axios";
+import type { ErrorResponse } from "@/types";
 import {
   DialogContent,
   DialogHeader,
@@ -21,11 +25,16 @@ import {
 
 const loginSchema = z.object({
   email: z.email("Некорректный адрес почты"),
-  password: z.string(),
+  password: z.string().min(1, "Введите пароль"),
 });
 type LoginData = z.infer<typeof loginSchema>;
 
-export const LoginForm = () => {
+export const LoginForm = ({
+  onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const id = useId();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -35,8 +44,24 @@ export const LoginForm = () => {
     },
   });
 
+  const login = useLogin();
+
   const onLogin = (data: LoginData) => {
-    console.log(data);
+    login.mutate(data, {
+      onSuccess() {
+        onClose();
+      },
+      // onError(error) {
+      //   toast.add({
+      //     type: "error",
+      //     title: "Неудача",
+      //     description:
+      //       (axios.isAxiosError<ErrorResponse>(error) &&
+      //         error.response?.data.error) ??
+      //       error.message,
+      //   });
+      // },
+    });
   };
 
   return (
@@ -46,20 +71,24 @@ export const LoginForm = () => {
           Вход в аккаунт
         </DialogTitle>
       </DialogHeader>
-      <form onSubmit={form.handleSubmit(onLogin)}>
+      <form noValidate onSubmit={form.handleSubmit(onLogin)}>
         <FieldGroup>
           <Controller
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
-              <Field onClick={() => console.log(field)}>
-                <FieldLabel htmlFor="login-email">
+              <Field>
+                <FieldLabel htmlFor={`${id}-email`}>
                   E-mail
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="login-email"
+                  type="email"
+                  id={`${id}-email`}
+                  autoComplete="email"
                   placeholder="Ваша почта"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -72,7 +101,7 @@ export const LoginForm = () => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="login-password">
+                <FieldLabel htmlFor={`${id}-password`}>
                   Пароль
                   {isShowingPass ? (
                     <Button
@@ -94,9 +123,12 @@ export const LoginForm = () => {
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="login-password"
-                  placeholder="Ваш пароль"
                   type={isShowingPass ? "text" : "password"}
+                  id={`${id}-password`}
+                  placeholder="Ваш пароль"
+                  autoComplete="off"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />

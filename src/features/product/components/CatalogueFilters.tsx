@@ -12,10 +12,11 @@ import {
   Select,
 } from "@/components/ui/select";
 import { Slider } from "@/components/ui/slider";
-import { useProducts } from "../hooks/use-products";
 import { useSearchParams } from "react-router";
-import { productsData } from "../types";
 import { formatPrice } from "@/utils/format-price";
+import { Button } from "@/components/ui/button";
+import { useState, useMemo } from "react";
+import { useCatalogue } from "../hooks/use-catalogue";
 
 const sortOptions = [
   {
@@ -37,87 +38,119 @@ const sortOptions = [
 ];
 
 export const CatalogueFilters = () => {
-  const { data: productsDat } = useProducts();
   const [params, setParams] = useSearchParams();
-  let max = 10000;
-  // productsData?.pages.flatMap((page) =>
-  //   page.products.forEach((product) => {
-  //     if (product.price > max) max = product.price;
-  //   }),
-  productsData?.forEach((product) => {
-    if (product.price > max) max = product.price;
-  });
+  const [slider, setSlider] = useState<[number, number] | null>(
+    null,
+  );
+  const [sortBy, setSortBy] = useState<string | null>(
+    params.get("sort-by"),
+  );
+  const { data: catalogueData } = useCatalogue();
+  let maxPrice = useMemo(
+    () =>
+      catalogueData?.pages.reduce(
+        (tally, cur) => Math.max(tally, cur.product.price),
+        0,
+      ) ?? 1000,
+    [catalogueData],
+  );
 
-  const sortBy = params.get("sort-by");
-  const lowestPrice = Number(params.get("lowest") ?? 0);
-  const highestPrice = Number(params.get("highest") ?? max);
+  const effectiveSlider = slider ?? [0, maxPrice];
 
-  const onChangeSort = (value: string | null) => {
-    if (!value) return;
+  const handleApply = (e: React.SubmitEvent) => {
+    e.preventDefault();
 
     setParams((prev) => {
-      prev.set("sort-by", value);
+      if (sortBy && sortBy !== "none")
+        prev.set("sort-by", sortBy);
+      else prev.delete("sort-by");
+
+      if (slider && slider[0])
+        prev.set("lowest", slider[0].toString());
+      else prev.delete("lowest");
+
+      if (slider && slider[1] !== undefined)
+        prev.set("highest", slider[1].toString());
+      else prev.delete("highest");
+
       return prev;
     });
   };
 
-  const onChangePrice = (value: number | readonly number[]) => {
-    if (!Array.isArray(value)) return;
+  const handleReset = () => {
+    setSlider(null);
+    setSortBy(null);
+
     setParams((prev) => {
-      prev.set("lowest", value[0].toString());
-      prev.set("highest", value[1].toString());
+      prev.delete("sort-by");
+      prev.delete("lowest");
+      prev.delete("highest");
+
       return prev;
     });
   };
 
   return (
     <section className="flex flex-col min-w-53">
-      <FieldGroup>
-        <Field>
-          <FieldLabel htmlFor="filters-sort">
-            Сортировка
-          </FieldLabel>
-          <Select
-            id="filters-sort"
-            items={sortOptions}
-            defaultValue="none"
-            value={sortBy || "none"}
-            onValueChange={onChangeSort}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectGroup>
-                {sortOptions.map((item) => (
-                  <SelectItem
-                    key={item.value}
-                    value={item.value}
-                  >
-                    {item.label}
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            </SelectContent>
-          </Select>
-        </Field>
-        <Field>
-          <FieldLabel htmlFor="filters-price">
-            <span className="block mr-auto">Цена</span>
-            <span>
-              от {lowestPrice} до{" "}
-              {formatPrice(highestPrice, true)}
-            </span>
-          </FieldLabel>
-          <Slider
-            id="filters-price"
-            defaultValue={[lowestPrice, highestPrice]}
-            onValueCommitted={onChangePrice}
-            max={max}
-            step={1}
-          />
-        </Field>
-      </FieldGroup>
+      <form onSubmit={handleApply} onReset={handleReset}>
+        <FieldGroup>
+          <Field>
+            <FieldLabel htmlFor="filters-sort">
+              Сортировка
+            </FieldLabel>
+            <Select
+              id="filters-sort"
+              items={sortOptions}
+              defaultValue="none"
+              value={sortBy || "none"}
+              onValueChange={(val) => setSortBy(val)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  {sortOptions.map((item) => (
+                    <SelectItem
+                      key={item.value}
+                      value={item.value}
+                    >
+                      {item.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field>
+            <FieldLabel htmlFor="filters-price">
+              <span className="block mr-auto">Цена</span>
+              <span>
+                от {effectiveSlider[0]} до{" "}
+                {formatPrice(effectiveSlider[1], true)}
+              </span>
+            </FieldLabel>
+            <Slider
+              id="filters-price"
+              value={effectiveSlider}
+              onValueChange={(val) =>
+                setSlider(val as typeof effectiveSlider)
+              }
+              defaultValue={[0, maxPrice]}
+              max={maxPrice}
+              step={1}
+            />
+          </Field>
+          <div className="space-y-2 *:w-full">
+            <Button type="submit" size="lg">
+              Применить фильтры
+            </Button>
+            <Button type="reset" variant="outline" size="lg">
+              Сбросить
+            </Button>
+          </div>
+        </FieldGroup>
+      </form>
     </section>
   );
 };

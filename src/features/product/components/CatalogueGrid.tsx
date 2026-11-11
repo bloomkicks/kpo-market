@@ -1,10 +1,10 @@
 import { formatPrice } from "@/utils/format-price";
 import { Link, useSearchParams } from "react-router";
-import { useProducts } from "../hooks/use-products";
+import { useCatalogue } from "../hooks/use-catalogue";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyHeader } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
-import { productsData } from "../types";
+import { QueryState } from "@/components/QueryState";
+import { applyFilters } from "@/utils/apply-filters";
 import {
   Card,
   CardHeader,
@@ -15,47 +15,29 @@ import {
 export const CatalogueGrid = () => {
   const [params, setParams] = useSearchParams();
   const {
-    data: productsDat,
+    data: catalogueData,
     isLoading,
     fetchNextPage,
-  } = useProducts();
-
-  // const products = productsData?.pages.flatMap(
-  //   (page) => page.products,
-  // );
-
-  const sortBy = params.get("sort-by");
-  const lowestPrice = Number(params.get("lowest") ?? 0);
-  const highestPrice = Number(params.get("highest") ?? Infinity);
-
-  let products = productsData.filter(
-    (product) =>
-      lowestPrice <= product.price &&
-      product.price <= highestPrice,
-  );
-
-  if (!!sortBy && sortBy !== "none")
-    products = [...products].sort((a, b) => {
-      const coefficient = sortBy.includes("ascend") ? 1 : -1;
-      if (sortBy == "new")
-        return b.createdAt.localeCompare(a.createdAt);
-
-      return coefficient * (b.price - a.price);
-    });
+    hasNextPage,
+  } = useCatalogue();
 
   const onLoadMore = () => {
     fetchNextPage();
-    setParams((prev) => {
-      prev.delete("sort-by");
-      return prev;
-    });
+    // setParams();
   };
+
+  const proudcts =
+    catalogueData?.pages.map((p) => p.product) ?? [];
+  const filtered = applyFilters(params, proudcts);
 
   return (
     <div className="w-full">
-      <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
-        {!!products?.length ? (
-          products.map((product) => (
+      <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <QueryState
+          isEmpty={!filtered.length}
+          emptyHeader="Товаров нет"
+        >
+          {filtered.map((product) => (
             <Card
               key={product.productId}
               size="sm"
@@ -65,7 +47,7 @@ export const CatalogueGrid = () => {
             >
               <img
                 src={product.url}
-                className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm"
+                className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm object-contain"
               />
               <CardHeader>
                 <CardTitle>
@@ -76,16 +58,10 @@ export const CatalogueGrid = () => {
                 </CardDescription>
               </CardHeader>
             </Card>
-          ))
-        ) : (
-          <Empty>
-            <EmptyHeader className="text-lg font-bold">
-              Товаров нет :D
-            </EmptyHeader>
-          </Empty>
-        )}
+          ))}
+        </QueryState>
       </section>
-      {!!products?.length && (
+      {!!filtered.length && hasNextPage && (
         <Button
           variant="outline"
           className="flex mt-8 mx-auto"
