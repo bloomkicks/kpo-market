@@ -1,34 +1,50 @@
-export interface PaginationParams {
-  limit: number;
-  cursor: string;
+export interface ErrorResponse {
+  error: string;
 }
+
+export interface ValidationErrorLine {
+  loc: [
+    string,
+    0
+  ],
+  msg: string,
+  type: string,
+  input: string,
+  ctx: {}
+}
+
+export interface ValidationErrorResponse {
+  detail: ValidationErrorLine[]
+}
+
+export interface DetailedErrorResponse {
+  error: string;
+}
+
+export interface Tokens {
+  access_token?: string;
+  refresh_token?: string;
+}
+
+export interface TokenPayload {
+  email: string;
+  exp: number;
+  iat: number;
+  iss: string;
+  role: UserRole;
+  sub: string
+}
+
 export interface Product {
   productId: string;
   title: string;
-  description?: string;
+  description: string;
   price: number;
   updatedAt: string;
   createdAt: string;
   url?: string;
+  rating: number;
+  feedbacksCount: number;
 }
 
-// export interface Profile {
-//   id: number;
-//   image: string;
-//   full_name: string;
-//   email: string;
-//   phone_number: string;
-//   city: string;
-//   address: string;
-// }
-
-// export interface Product {
-//   id: number;
-//   price: number;
-//   title: string;
-//   images: string[];
-//   review_amount: number;
-//   review_value: number;
-//   sizes: number[];
-//   description: string;
-// }
+export type UserRole = "customer" | "business"

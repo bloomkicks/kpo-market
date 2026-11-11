@@ -1,24 +1,21 @@
-import type { LogoutRequest } from "../types";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { api } from "@/api/client";
-import { useAuthStore } from "@/store/auth-store";
+import { useAuthStore } from '@/store/auth-store';
+import { queryClient } from '@/api/query-client';
 
 export const useLogout = () => {
-  const logout = useAuthStore((s) => s.logout);
-  const queryClient = useQueryClient();
+  const clearTokens = useAuthStore(s => s.clearTokens)
 
   return useMutation({
     mutationFn: async () => {
-      const refresh_token = useAuthStore.getState().tokens?.refresh_token;
-      if (refresh_token)
-        await api.post("/auth/logout", { refresh_token } satisfies LogoutRequest);
+      const response = await api.post("/auth/logout", {
+        refresh: useAuthStore.getState().refresh_token
+      });
+      return response.data;
     },
-    // выходим локально, даже если отозвать refresh на бэке не получилось
     onSettled() {
-      logout();
-      queryClient.removeQueries({ queryKey: ["profile"] });
-      queryClient.removeQueries({ queryKey: ["orders"] });
-      queryClient.removeQueries({ queryKey: ["balance"] });
-    },
+      clearTokens()
+      queryClient.clear()
+    }
   });
 };

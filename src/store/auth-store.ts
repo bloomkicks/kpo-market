@@ -1,43 +1,31 @@
-import { create } from 'zustand'
-import { persist } from 'zustand/middleware'
-import type { Tokens } from '@/features/auth/types';
-import { useCartStore } from './create-store';
+import { create } from "zustand"
+import { persist, createJSONStorage } from "zustand/middleware"
+import { jwtDecode } from "jwt-decode"
+import type { Tokens, TokenPayload } from '@/types';
 
-export type Role = "customer" | "business"
-
-export interface AuthStore {
-  tokens: Tokens | null;
-  role: Role | null;
-  setTokens(tokens: Tokens): void;
-  logout(): void;
-}
-
-// роль кладёт в access-токен auth; подпись проверяет gateway, фронту достаточно прочитать payload
-const roleFromToken = (token: string): Role | null => {
-  try {
-    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")
-    return JSON.parse(atob(payload)).role ?? null
-  } catch {
-    return null
-  }
-}
+export type AuthStore = {
+  setTokens: (tokens: Tokens) => void;
+  clearTokens: () => void;
+  decodeToken: () => TokenPayload | null
+} & Tokens
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set) => ({
-      tokens: null,
-      role: null,
-      setTokens: (tokens: Tokens) => set({ tokens, role: roleFromToken(tokens.access_token) }),
-      // корзина лежит в localStorage браузера, а не на бэке — без очистки следующий
-      // пользователь на этом устройстве увидит чужие товары
-      logout: () => {
-        useCartStore.getState().clear()
-        set({ tokens: null, role: null })
+    (set, get) => ({
+      setTokens(tokens) { set(tokens); },
+      clearTokens() { set({ access_token: undefined, refresh_token: undefined }); },
+      decodeToken() {
+        const token = get().access_token;
+        return token ? jwtDecode<TokenPayload>(token) : null;
       },
     }),
     {
-      name: 'auth-storage',
-      version: 1,
+      name: "auth",
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        access_token: state.access_token,
+        refresh_token: state.refresh_token,
+      }),
     },
-  )
-)
+  ),
+);

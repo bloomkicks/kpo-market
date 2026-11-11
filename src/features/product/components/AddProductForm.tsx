@@ -1,8 +1,3 @@
-import * as z from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { useState } from "react";
-import { useNavigate } from "react-router";
 import {
   DialogContent,
   DialogHeader,
@@ -18,98 +13,155 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
-import { errorMessage } from "@/api/errors";
+import { useForm, Controller } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { useAddProduct } from "../hooks/use-add-product";
-import { useAddImage } from "../hooks/use-add-image";
+import { useId } from "react";
+import { useNavigate } from "react-router";
 
-// ограничения повторяют CreateProductRequest в catalog
-const productSchema = z.object({
-  title: z.string().trim().min(1, "Укажите название"),
-  description: z.string().trim(),
-  price: z.coerce.number<string>().int("Целое число").positive("Больше нуля"),
-  quantity: z.coerce.number<string>().int("Целое число").min(1, "От 1").max(99, "До 99"),
+const addProductSchema = z.object({
+  title: z.string().trim().min(3, "Название слишком короткое"),
+  description: z
+    .string()
+    .trim()
+    .min(3, "Описание слишком короткое"),
+  price: z.coerce
+    .number<number>()
+    .refine((val) => val !== 0, "Введите цену"),
+  quantity: z.coerce
+    .number<number>()
+    .refine((val) => val !== 0, "Введите количество"),
 });
-type ProductInput = z.input<typeof productSchema>;
-type ProductData = z.output<typeof productSchema>;
+type AddProductData = z.infer<typeof addProductSchema>;
 
-export const AddProductForm = ({ onSuccess }: { onSuccess?: () => void }) => {
+export const AddProductForm = () => {
   const navigate = useNavigate();
-  const addProduct = useAddProduct();
-  const addImage = useAddImage();
-  const [image, setImage] = useState<File | null>(null);
-  const form = useForm<ProductInput, unknown, ProductData>({
-    resolver: zodResolver(productSchema),
-    defaultValues: { title: "", description: "", price: "", quantity: "1" },
+  const id = useId();
+  const form = useForm<AddProductData>({
+    resolver: zodResolver(addProductSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      price: undefined,
+      quantity: undefined,
+    },
   });
 
-  const onSubmit = async (data: ProductData) => {
-    const product = await addProduct.mutateAsync({
-      ...data,
-      description: data.description || undefined,
+  const { mutate: addProduct } = useAddProduct();
+
+  const handleAddProduct = (data: AddProductData) => {
+    addProduct(data, {
+      onSuccess: (res) =>
+        navigate(`/product/${res.product.productId}?edit=on`),
     });
-    // товар уже создан: если картинка не загрузилась, просто показываем ошибку
-    if (image) await addImage.mutateAsync({ productId: product.productId, file: image });
-
-    onSuccess?.();
-    navigate(`/product/${product.productId}`);
   };
-
-  const isPending = addProduct.isPending || addImage.isPending;
-  const { errors } = form.formState;
 
   return (
     <DialogContent>
       <DialogHeader>
-        <DialogTitle className="text-xl font-bold">Новый товар</DialogTitle>
+        <DialogTitle className="text-xl font-bold">
+          Добавление товара
+        </DialogTitle>
       </DialogHeader>
-      <form onSubmit={form.handleSubmit((data) => onSubmit(data).catch(() => {}))}>
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(handleAddProduct)}
+      >
         <FieldGroup>
-          <Field>
-            <FieldLabel htmlFor="product-title">Название</FieldLabel>
-            <Input id="product-title" {...form.register("title")} />
-            <FieldError errors={[errors.title]} />
-          </Field>
-          <Field>
-            <FieldLabel htmlFor="product-description">Описание</FieldLabel>
-            <Input id="product-description" {...form.register("description")} />
-          </Field>
-          <div className="grid grid-cols-2 gap-5 *:min-w-0">
-            <Field>
-              <FieldLabel htmlFor="product-price">Цена, ₽</FieldLabel>
-              <Input id="product-price" type="number" min={1} {...form.register("price")} />
-              <FieldError errors={[errors.price]} />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="product-quantity">Количество</FieldLabel>
-              <Input id="product-quantity" type="number" min={1} max={99} {...form.register("quantity")} />
-              <FieldError errors={[errors.quantity]} />
-            </Field>
-          </div>
-          <Field>
-            <FieldLabel htmlFor="product-image">Картинка (jpeg или png)</FieldLabel>
-            <Input
-              id="product-image"
-              type="file"
-              accept="image/jpeg,image/png"
-              onChange={(e) => setImage(e.target.files?.[0] ?? null)}
+          <Controller
+            name="title"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel htmlFor={`${id}-title`}>
+                  Название
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={`${id}-title`}
+                  placeholder="Название товара"
+                  aria-invalid={fieldState.invalid}
+                  required
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <Controller
+            name="description"
+            control={form.control}
+            render={({ field, fieldState }) => (
+              <Field>
+                <FieldLabel htmlFor={`${id}-description`}>
+                  Описание
+                </FieldLabel>
+                <Input
+                  {...field}
+                  id={`${id}-description`}
+                  placeholder="Описание товара"
+                  aria-invalid={fieldState.invalid}
+                  required
+                />
+                {fieldState.invalid && (
+                  <FieldError errors={[fieldState.error]} />
+                )}
+              </Field>
+            )}
+          />
+          <div className="flex grow gap-2">
+            <Controller
+              name="price"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor={`${id}-price`}>
+                    Стоимость, ₽
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    id={`${id}-price`}
+                    placeholder="...."
+                    aria-invalid={fieldState.invalid}
+                    required
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
             />
-          </Field>
-          {addProduct.isError && (
-            <FieldError>
-              {errorMessage(addProduct.error, { 403: "Добавлять товары может только бизнес-профиль" })}
-            </FieldError>
-          )}
-          {addImage.isError && (
-            <FieldError>
-              Товар создан, но картинку загрузить не удалось: {errorMessage(addImage.error)}
-            </FieldError>
-          )}
+            <Controller
+              name="quantity"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field>
+                  <FieldLabel htmlFor={`${id}-quantity`}>
+                    Количество
+                  </FieldLabel>
+                  <Input
+                    {...field}
+                    type="number"
+                    id={`${id}-quantity`}
+                    placeholder="...."
+                    aria-invalid={fieldState.invalid}
+                    required
+                  />
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+          </div>
           <DialogFooter>
-            <DialogClose render={<Button variant="outline">Отмена</Button>} />
-            <Button type="submit" disabled={isPending}>
-              {isPending ? <Spinner /> : "Добавить"}
-            </Button>
+            <DialogClose
+              render={<Button variant="outline">Отмена</Button>}
+            />
+            <Button type="submit">Добавить товар</Button>
           </DialogFooter>
         </FieldGroup>
       </form>

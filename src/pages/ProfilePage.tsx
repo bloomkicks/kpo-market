@@ -1,47 +1,45 @@
-import { ProfileHeader } from "@/features/profile/components/ProfileHeader";
-import { ProfileCard } from "@/features/profile/components/ProfileCard";
+import { ProfileDetails } from "@/features/profile/components/ProfileDetails";
 import { ProfileActions } from "@/features/profile/components/ProfileActions";
 import { ProfileOrders } from "@/features/profile/components/ProfileOrders";
+import { EditProfileForm } from "@/features/profile/components/EditProfileForm";
+import { EditProfileActions } from "@/features/profile/components/EditProfileActions";
 import { useProfile } from "@/features/profile/hooks/use-profile";
-import { mainProfile } from "@/features/profile/utils";
-import { useAuthStore } from "@/store/auth-store";
-import { Empty, EmptyHeader } from "@/components/ui/empty";
-import { Spinner } from "@/components/ui/spinner";
+import { QueryState } from "@/components/QueryState";
+import { useState } from "react";
+import { selectProfile } from "@/utils/select-profile";
 
 export const ProfilePage = () => {
-  const isAuth = useAuthStore((s) => !!s.tokens);
-  const { data: profiles, isLoading, isError } = useProfile();
-
-  if (!isAuth)
-    return (
-      <Empty>
-        <EmptyHeader className="text-lg font-bold">
-          Войдите, чтобы открыть профиль
-        </EmptyHeader>
-      </Empty>
-    );
-
-  if (isLoading) return <Spinner className="mx-auto mt-8" />;
-
-  // профиль создаётся асинхронно после регистрации (через kafka), может ещё не появиться
-  const profile = profiles?.length ? mainProfile(profiles) : null;
-  if (isError || !profile)
-    return (
-      <Empty>
-        <EmptyHeader className="text-lg font-bold">
-          {isError
-            ? "Не удалось загрузить профиль"
-            : "Профиль ещё создаётся, обновите страницу через пару секунд"}
-        </EmptyHeader>
-      </Empty>
-    );
+  const { data: profile } = useProfile({
+    select: selectProfile,
+  });
+  const [isEditing, setIsEditing] = useState(false);
 
   return (
-    <div className="space-y-6">
-      <ProfileHeader profile={profile} />
-      <ProfileCard profile={profile} />
-      <ProfileOrders />
-      <ProfileActions profile={profile} />
-    </div>
+    <QueryState isEmpty={!profile}>
+      {profile && (
+        <div className="space-y-6">
+          {isEditing ? (
+            <>
+              <EditProfileForm
+                profile={profile}
+                onClose={() => setIsEditing(false)}
+              />
+              <EditProfileActions
+                onCancel={() => setIsEditing(false)}
+              />
+            </>
+          ) : (
+            <>
+              <ProfileDetails profile={profile} />
+              <ProfileActions
+                profile={profile}
+                onEdit={() => setIsEditing(true)}
+              />
+            </>
+          )}
+          {!profile.business && <ProfileOrders />}
+        </div>
+      )}
+    </QueryState>
   );
 };

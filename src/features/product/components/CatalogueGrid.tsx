@@ -1,9 +1,10 @@
 import { formatPrice } from "@/utils/format-price";
-import { Link } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { useCatalogue } from "../hooks/use-catalogue";
 import { Button } from "@/components/ui/button";
-import { Empty, EmptyHeader } from "@/components/ui/empty";
 import { Spinner } from "@/components/ui/spinner";
+import { QueryState } from "@/components/QueryState";
+import { applyFilters } from "@/utils/apply-filters";
 import {
   Card,
   CardHeader,
@@ -12,34 +13,31 @@ import {
 } from "@/components/ui/card";
 
 export const CatalogueGrid = () => {
+  const [params, setParams] = useSearchParams();
   const {
-    products,
+    data: catalogueData,
     isLoading,
-    isError,
-    isFetchingNextPage,
-    hasNextPage,
     fetchNextPage,
-    isFiltered,
-    isFilling,
+    hasNextPage,
   } = useCatalogue();
 
-  if (isLoading || (isFilling && !products.length))
-    return <Spinner className="mx-auto mt-8" />;
+  const onLoadMore = () => {
+    fetchNextPage();
+    // setParams();
+  };
 
-  if (isError)
-    return (
-      <Empty>
-        <EmptyHeader className="text-lg font-bold">
-          Не удалось загрузить каталог
-        </EmptyHeader>
-      </Empty>
-    );
+  const proudcts =
+    catalogueData?.pages.map((p) => p.product) ?? [];
+  const filtered = applyFilters(params, proudcts);
 
   return (
     <div className="w-full">
-      <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] gap-6">
-        {products.length ? (
-          products.map((product) => (
+      <section className="w-full grid grid-cols-[repeat(auto-fit,minmax(280px,1fr))] sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+        <QueryState
+          isEmpty={!filtered.length}
+          emptyHeader="Товаров нет"
+        >
+          {filtered.map((product) => (
             <Card
               key={product.productId}
               size="sm"
@@ -49,7 +47,7 @@ export const CatalogueGrid = () => {
             >
               <img
                 src={product.url}
-                className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm"
+                className="bg-card-foreground/5 h-58 ratio-[0.931] rounded-sm object-contain"
               />
               <CardHeader>
                 <CardTitle>
@@ -60,25 +58,17 @@ export const CatalogueGrid = () => {
                 </CardDescription>
               </CardHeader>
             </Card>
-          ))
-        ) : (
-          <Empty>
-            <EmptyHeader className="text-lg font-bold">
-              {isFiltered
-                ? "Ничего не нашлось, попробуйте изменить фильтры"
-                : "Товаров нет :D"}
-            </EmptyHeader>
-          </Empty>
-        )}
+          ))}
+        </QueryState>
       </section>
-      {!!products.length && hasNextPage && !isFiltered && (
+      {!!filtered.length && hasNextPage && (
         <Button
           variant="outline"
           className="flex mt-8 mx-auto"
-          onClick={() => fetchNextPage()}
-          disabled={isFetchingNextPage}
+          onClick={onLoadMore}
+          disabled={isLoading}
         >
-          {isFetchingNextPage ? <Spinner /> : "Загрузить ещё"}
+          {isLoading ? <Spinner /> : "Загрузить ещё"}
         </Button>
       )}
     </div>

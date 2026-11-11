@@ -1,3 +1,4 @@
+import { toast } from "@/components/ui/toast";
 import {
   DialogContent,
   DialogHeader,
@@ -14,13 +15,13 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import * as z from "zod";
+import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useState } from "react";
+import { useState, useId, useRef } from "react";
 import { useRegister } from "../hooks/use-register";
-import { errorMessage } from "@/api/errors";
-import { Spinner } from "@/components/ui/spinner";
+import axios from "axios";
+import type { ErrorResponse } from "@/types";
 
 const registerSchema = z.object({
   email: z.email("Некорректный адрес почты"),
@@ -40,8 +41,12 @@ const registerSchema = z.object({
 });
 type RegisterData = z.infer<typeof registerSchema>;
 
-export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
-  const mutation = useRegister();
+export const RegisterForm = ({
+  onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const id = useId();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<RegisterData>({
     resolver: zodResolver(registerSchema),
@@ -51,8 +56,25 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
+  const register = useRegister();
+
   const onRegister = (data: RegisterData) => {
-    mutation.mutate(data, { onSuccess });
+    register.mutate(data, {
+      onSuccess() {
+        onClose();
+      },
+      // onError(error) {
+      //   if (axios.isAxiosError<ErrorResponse>(error))
+      //     toast.add({
+      //       type: "error",
+      //       title: "Неудача",
+      //       description:
+      //         (axios.isAxiosError<ErrorResponse>(error) &&
+      //           error.response?.data.error) ??
+      //         error.message,
+      //     });
+      // },
+    });
   };
 
   return (
@@ -62,20 +84,24 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           Регистрация
         </DialogTitle>
       </DialogHeader>
-      <form onSubmit={form.handleSubmit(onRegister)}>
+      <form noValidate onSubmit={form.handleSubmit(onRegister)}>
         <FieldGroup>
           <Controller
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="register-email">
+                <FieldLabel htmlFor={`${id}-email`}>
                   E-mail
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="register-email"
+                  type="email"
+                  id={`${id}-email`}
+                  autoComplete="email"
                   placeholder="Ваша почта"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -88,12 +114,11 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="register-password">
+                <FieldLabel htmlFor={`${id}-password`}>
                   Пароль
                   {isShowingPass ? (
                     <Button
                       onClick={() => setIsShowingPass(false)}
-                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -102,7 +127,6 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   ) : (
                     <Button
                       onClick={() => setIsShowingPass(true)}
-                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -112,9 +136,12 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="register-password"
-                  placeholder="Ваш пароль"
+                  id={`${id}-password`}
                   type={isShowingPass ? "text" : "password"}
+                  autoComplete="off"
+                  placeholder="Ваш пароль"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -122,18 +149,11 @@ export const RegisterForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               </Field>
             )}
           />
-          {mutation.isError && (
-            <FieldError>
-              {errorMessage(mutation.error, { 409: "Пользователь с такой почтой уже существует" })}
-            </FieldError>
-          )}
           <DialogFooter>
             <DialogClose
               render={<Button variant="outline">Отмена</Button>}
             />
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? <Spinner /> : "Зарегистрироваться"}
-            </Button>
+            <Button type="submit">Зарегистрироваться</Button>
           </DialogFooter>
         </FieldGroup>
       </form>

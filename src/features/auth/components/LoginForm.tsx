@@ -1,4 +1,4 @@
-import * as z from "zod";
+import { z } from "zod";
 import {
   FieldGroup,
   Field,
@@ -9,11 +9,12 @@ import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
-import { useLogin } from "../hooks/use-login";
-import { errorMessage } from "@/api/errors";
-import { Spinner } from "@/components/ui/spinner";
+import { useState, useId, useRef } from "react";
 import { EyeSlashIcon, EyeIcon } from "@phosphor-icons/react";
+import { useLogin } from "../hooks/use-login";
+import { toast } from "@/components/ui/toast";
+import axios from "axios";
+import type { ErrorResponse } from "@/types";
 import {
   DialogContent,
   DialogHeader,
@@ -24,12 +25,16 @@ import {
 
 const loginSchema = z.object({
   email: z.email("Некорректный адрес почты"),
-  password: z.string(),
+  password: z.string().min(1, "Введите пароль"),
 });
 type LoginData = z.infer<typeof loginSchema>;
 
-export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
-  const mutation = useLogin();
+export const LoginForm = ({
+  onClose,
+}: {
+  onClose: () => void;
+}) => {
+  const id = useId();
   const [isShowingPass, setIsShowingPass] = useState(false);
   const form = useForm<LoginData>({
     resolver: zodResolver(loginSchema),
@@ -39,8 +44,24 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     },
   });
 
+  const login = useLogin();
+
   const onLogin = (data: LoginData) => {
-    mutation.mutate(data, { onSuccess });
+    login.mutate(data, {
+      onSuccess() {
+        onClose();
+      },
+      // onError(error) {
+      //   toast.add({
+      //     type: "error",
+      //     title: "Неудача",
+      //     description:
+      //       (axios.isAxiosError<ErrorResponse>(error) &&
+      //         error.response?.data.error) ??
+      //       error.message,
+      //   });
+      // },
+    });
   };
 
   return (
@@ -50,20 +71,24 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
           Вход в аккаунт
         </DialogTitle>
       </DialogHeader>
-      <form onSubmit={form.handleSubmit(onLogin)}>
+      <form noValidate onSubmit={form.handleSubmit(onLogin)}>
         <FieldGroup>
           <Controller
             name="email"
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="login-email">
+                <FieldLabel htmlFor={`${id}-email`}>
                   E-mail
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="login-email"
+                  type="email"
+                  id={`${id}-email`}
+                  autoComplete="email"
                   placeholder="Ваша почта"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -76,12 +101,11 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field>
-                <FieldLabel htmlFor="login-password">
+                <FieldLabel htmlFor={`${id}-password`}>
                   Пароль
                   {isShowingPass ? (
                     <Button
                       onClick={() => setIsShowingPass(false)}
-                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -90,7 +114,6 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                   ) : (
                     <Button
                       onClick={() => setIsShowingPass(true)}
-                      type="button"
                       variant="ghost"
                       size="icon-sm"
                     >
@@ -100,9 +123,12 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
                 </FieldLabel>
                 <Input
                   {...field}
-                  id="login-password"
-                  placeholder="Ваш пароль"
                   type={isShowingPass ? "text" : "password"}
+                  id={`${id}-password`}
+                  placeholder="Ваш пароль"
+                  autoComplete="off"
+                  required
+                  aria-invalid={fieldState.invalid}
                 />
                 {fieldState.invalid && (
                   <FieldError errors={[fieldState.error]} />
@@ -110,18 +136,11 @@ export const LoginForm = ({ onSuccess }: { onSuccess?: () => void }) => {
               </Field>
             )}
           />
-          {mutation.isError && (
-            <FieldError>
-              {errorMessage(mutation.error, { 401: "Неверная почта или пароль" })}
-            </FieldError>
-          )}
           <DialogFooter>
             <DialogClose
               render={<Button variant="outline">Отмена</Button>}
             />
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? <Spinner /> : "Войти"}
-            </Button>
+            <Button type="submit">Войти</Button>
           </DialogFooter>
         </FieldGroup>
       </form>

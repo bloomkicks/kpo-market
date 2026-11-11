@@ -1,7 +1,7 @@
 import type { Product } from "@/types";
 import { AmountField } from "@/components/AmountField";
 import { formatPrice } from "@/utils/format-price";
-import { useCartStore } from "@/store/create-store";
+import { useCartStore } from "@/store/cart-store";
 
 export const CartItem = ({
   productId,
@@ -15,7 +15,7 @@ export const CartItem = ({
   return (
     <div className="flex items-center gap-x-4">
       <img
-        className="bg-card-foreground/5 rounded-sm"
+        className="bg-card-foreground/5 rounded-sm object-contain"
         src={url}
         alt=""
         width="84px"

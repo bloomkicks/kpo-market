@@ -1,50 +1,68 @@
-import axios, { type InternalAxiosRequestConfig } from "axios"
+import axios from "axios"
+import type { InternalAxiosRequestConfig } from "axios"
 import { useAuthStore } from "@/store/auth-store"
-import type { RefreshResponse } from "@/features/auth/types"
+import type { RefreshResponse } from '@/features/auth/types/index';
 
-const baseURL = "http://localhost:80/api/v1"
+const baseURL = "/api/v1"
 
 export const api = axios.create({ baseURL })
 
-api.interceptors.request.use((config) => {
-  const token = useAuthStore.getState().tokens?.access_token
-  if (token) config.headers.Authorization = `Bearer ${token}`
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = useAuthStore.getState().access_token
+  if (token)
+    config.headers.set("Authorization", `Bearer ${token}`)
+
   return config
 })
 
-// один refresh на все запросы, упавшие с 401 одновременно
-let refreshing: Promise<string | null> | null = null
+let refreshPromise: Promise<string> | null = null;
 
-export const refreshTokens = () => {
-  const { tokens, setTokens, logout } = useAuthStore.getState()
-  if (!tokens) return Promise.resolve(null)
+const refreshAccessToken = async (): Promise<string> => {
+  if (refreshPromise) return refreshPromise;
 
-  refreshing ??= axios
-    .post<RefreshResponse>(`${baseURL}/auth/refresh`, { refresh_token: tokens.refresh_token })
-    .then(({ data }) => {
-      setTokens(data)
-      return data.access_token
-    })
-    .catch(() => {
-      logout()
-      return null
-    })
-    .finally(() => {
-      refreshing = null
-    })
+  refreshPromise = (async () => {
+    const { refresh_token } = useAuthStore.getState();
+    if (!refresh_token) throw new Error("No refresh token");
 
-  return refreshing
+    const { data } = await axios.post<RefreshResponse>(
+      "/auth/refresh",
+      { refresh_token },
+      { baseURL },
+    );
+
+    useAuthStore.setState({
+      access_token: data.access_token,
+      refresh_token: data.refresh_token ?? refresh_token,
+    });
+
+    return data.access_token;
+  })().finally(() => {
+    refreshPromise = null;
+  });
+
+  return refreshPromise;
 }
 
-api.interceptors.response.use(undefined, async (error) => {
-  const config = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
-  if (error.response?.status !== 401 || !config || config._retry || config.url?.startsWith("/auth/"))
-    throw error
+api.interceptors.response.use(null, async (error) => {
+  if (!axios.isAxiosError(error)) return Promise.reject(error);
 
-  config._retry = true
-  const token = await refreshTokens()
-  if (!token) throw error
+  const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
 
-  config.headers.Authorization = `Bearer ${token}`
-  return api(config)
-})
+  if (
+    error.response?.status !== 401 ||
+    original?._retry ||
+    original?.url?.includes("/auth/refresh")
+  ) {
+    return Promise.reject(error);
+  }
+
+  original._retry = true;
+
+  try {
+    await refreshAccessToken();
+    return api(original);
+  } catch {
+    useAuthStore.getState().clearTokens();
+    return Promise.reject(error);
+  }
+});

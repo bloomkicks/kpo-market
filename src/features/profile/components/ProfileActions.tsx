@@ -1,57 +1,76 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { RegisterBusinessForm } from "@/features/profile/components/RegisterBusinessForm";
 import { AddProductForm } from "@/features/product/components/AddProductForm";
-import { useAuthStore } from "@/store/auth-store";
-import type { Profile } from "../types";
-import { BusinessForm } from "./BusinessForm";
-import { EditProfileForm } from "./EditProfileForm";
+import type { MergedProfile } from "../types";
+import { useState } from "react";
+import { useLogout } from "@/features/auth/hooks/use-logout";
 
-type DialogName = "edit" | "business" | "product";
+export const ProfileActions = ({
+  profile,
+  onEdit,
+}: {
+  profile: MergedProfile;
+  onEdit: () => void;
+}) => {
+  const [isAddProductOpen, setIsAddProductOpen] =
+    useState(false);
+  const [isRegisterBusinessOpen, setIsRegisterBusinessOpen] =
+    useState(false);
 
-export const ProfileActions = ({ profile }: { profile: Profile }) => {
-  const [openDialog, setOpenDialog] = useState<DialogName | null>(null);
-  const [isBusinessCreated, setIsBusinessCreated] = useState(false);
-  // ручки продавца смотрят на роль в токене, а не на наличие профиля
-  const isSeller = useAuthStore((s) => s.role === "business");
+  const { mutate: logout } = useLogout();
 
-  const dialogProps = (name: DialogName) => ({
-    open: openDialog === name,
-    onOpenChange: (open: boolean) => setOpenDialog(open ? name : null),
-  });
-  const close = () => setOpenDialog(null);
-
-  // роль business приходит, пока форма бизнеса ещё открыта (ждём её в токене) —
-  // не подменяем открытый диалог формой товара
-  const showBusiness = !isSeller || openDialog === "business";
+  const handleLogout = () => {
+    logout();
+  };
 
   return (
-    <div className="space-y-3">
-      {isBusinessCreated && isSeller && (
-        <p>Бизнес-профиль создан — теперь можно добавлять товары.</p>
-      )}
-      <div className="flex gap-x-4">
-        <Dialog key="edit" {...dialogProps("edit")}>
-          <DialogTrigger render={<Button size="lg" variant="outline">Редактировать профиль</Button>} />
-          <EditProfileForm profile={profile} onSuccess={close} />
+    <div className="flex gap-2 w-full">
+      <Button size="lg" onClick={onEdit}>
+        Редактировать профиль
+      </Button>
+      {!!profile.business ? (
+        <Dialog
+          open={isAddProductOpen}
+          onOpenChange={(open) => setIsAddProductOpen(open)}
+        >
+          <DialogTrigger
+            render={
+              <Button variant="outline" size="lg">
+                Добавить товар
+              </Button>
+            }
+          />
+          <AddProductForm />
         </Dialog>
-        {showBusiness ? (
-          <Dialog key="business" {...dialogProps("business")}>
-            <DialogTrigger render={<Button size="lg">Зарегистрировать бизнес</Button>} />
-            <BusinessForm
-              onSuccess={() => {
-                setIsBusinessCreated(true);
-                close();
-              }}
-            />
-          </Dialog>
-        ) : (
-          <Dialog key="product" {...dialogProps("product")}>
-            <DialogTrigger render={<Button size="lg">Добавить товар</Button>} />
-            <AddProductForm onSuccess={close} />
-          </Dialog>
-        )}
-      </div>
+      ) : (
+        <Dialog
+          open={isRegisterBusinessOpen}
+          onOpenChange={(open) =>
+            setIsRegisterBusinessOpen(open)
+          }
+        >
+          <DialogTrigger
+            render={
+              <Button variant="outline" size="lg">
+                Зарегистрировать бизнес
+              </Button>
+            }
+          />
+          <RegisterBusinessForm
+            profile={profile}
+            onClose={() => setIsRegisterBusinessOpen(false)}
+          />
+        </Dialog>
+      )}
+      <Button
+        size="lg"
+        variant="destructive"
+        onClick={handleLogout}
+        className="justify-self-end"
+      >
+        Выйти из аккаунта
+      </Button>
     </div>
   );
 };

@@ -2,16 +2,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Layout } from "@/components/Layout";
 import { CataloguePage } from "@/pages/CataloguePage";
 import { ProductPage } from "@/pages/ProductPage";
-import { CartPage } from "@/pages/CartPage";
 import { OrderPage } from "@/pages/OrderPage";
 import { ProfilePage } from "@/pages/ProfilePage";
-import {
-  QueryClient,
-  QueryClientProvider,
-} from "@tanstack/react-query";
+import { z } from "zod";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { AuthRoute } from "@/components/AuthRoute";
+import { queryClient } from "@/api/query-client";
 
-const queryClient = new QueryClient();
+z.config(z.locales.ru());
 
 function App() {
   return (
@@ -27,9 +26,10 @@ function App() {
                 element={<ProductPage />}
               />
             </Route>
-            <Route path="profile" element={<ProfilePage />} />
-            <Route path="cart" element={<CartPage />} />
-            <Route path="order" element={<OrderPage />} />
+            <Route element={<AuthRoute />}>
+              <Route path="profile" element={<ProfilePage />} />
+              <Route path="order" element={<OrderPage />} />
+            </Route>
           </Route>
         </Routes>
       </BrowserRouter>
