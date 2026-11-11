@@ -37,7 +37,9 @@ export const EditProfileForm = ({
 }) => {
   const id = useId();
   const { mutate: editProfile } = useEditProfile(profile.id);
-  const { data: balance } = useBalance();
+  // бизнес не покупает - баланс ему не нужен
+  const isBusiness = !!profile.business;
+  const { data: balance } = useBalance(!isBusiness);
   const form = useForm<EditProfileData>({
     resolver: zodResolver(editProfileSchema),
     defaultValues: {
@@ -105,9 +107,11 @@ export const EditProfileForm = ({
         </div>
       </div>
       <div className="w-full p-6 rounded-lg ring-1 ring-border space-y-5">
-        <p className="text-xl font-bold mb-4">
-          Баланс: {formatPrice(balance?.amount ?? 0)}
-        </p>
+        {!isBusiness && (
+          <p className="text-xl font-bold mb-4">
+            Баланс: {formatPrice(balance?.amount ?? 0)}
+          </p>
+        )}
         <div className="flex gap-2 *:pr-2">
           <Controller
             name="phone"

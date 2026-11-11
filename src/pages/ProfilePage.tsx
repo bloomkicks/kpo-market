@@ -1,6 +1,9 @@
 import { ProfileDetails } from "@/features/profile/components/ProfileDetails";
 import { ProfileActions } from "@/features/profile/components/ProfileActions";
 import { ProfileOrders } from "@/features/profile/components/ProfileOrders";
+import { ProfileWishlist } from "@/features/profile/components/ProfileWishlist";
+import { ProfileFeedbacks } from "@/features/profile/components/ProfileFeedbacks";
+import { ProfileBusinessFeedbacks } from "@/features/profile/components/ProfileBusinessFeedbacks";
 import { EditProfileForm } from "@/features/profile/components/EditProfileForm";
 import { EditProfileActions } from "@/features/profile/components/EditProfileActions";
 import { useProfile } from "@/features/profile/hooks/use-profile";
@@ -37,7 +40,15 @@ export const ProfilePage = () => {
               />
             </>
           )}
-          {!profile.business && <ProfileOrders />}
+          {!!profile.business ? (
+            <ProfileBusinessFeedbacks />
+          ) : (
+            <>
+              <ProfileWishlist />
+              <ProfileOrders />
+              <ProfileFeedbacks />
+            </>
+          )}
         </div>
       )}
     </QueryState>

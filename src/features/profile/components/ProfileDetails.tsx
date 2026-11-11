@@ -11,7 +11,9 @@ export const ProfileDetails = ({
   profile: MergedProfile;
 }) => {
   const decodeToken = useAuthStore((s) => s.decodeToken);
-  const { data: balance } = useBalance();
+  // бизнес не покупает - баланс ему не нужен
+  const isBusiness = !!profile.business;
+  const { data: balance } = useBalance(!isBusiness);
   const email = decodeToken()?.email;
 
   return (
@@ -26,9 +28,11 @@ export const ProfileDetails = ({
         </div>
       </div>
       <div className="w-full p-6 rounded-lg ring-1 ring-border space-y-5">
-        <p className="text-xl font-bold mb-4">
-          Баланс: {formatPrice(balance?.amount ?? 0)}
-        </p>
+        {!isBusiness && (
+          <p className="text-xl font-bold mb-4">
+            Баланс: {formatPrice(balance?.amount ?? 0)}
+          </p>
+        )}
         <div className="flex *:w-1/2">
           <div>
             <p className="text-sm mb-2">Номер телефона</p>

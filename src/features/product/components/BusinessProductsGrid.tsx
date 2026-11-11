@@ -35,6 +35,7 @@ export const BusinessProductsGrid = () => {
   return (
     <div className="w-full">
       <QueryState
+        isLoading={isLoading}
         isEmpty={!filtered.length}
         emptyHeader="Товаров нет"
       >

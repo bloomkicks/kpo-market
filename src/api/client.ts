@@ -17,7 +17,7 @@ api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
 
 let refreshPromise: Promise<string> | null = null;
 
-const refreshAccessToken = async (): Promise<string> => {
+export const refreshAccessToken = async (): Promise<string> => {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
@@ -47,9 +47,12 @@ api.interceptors.response.use(null, async (error) => {
   if (!axios.isAxiosError(error)) return Promise.reject(error);
 
   const original = error.config as InternalAxiosRequestConfig & { _retry?: boolean };
+  const status = error.response?.status;
 
+  // 401 - access-токен истёк. 403 - роль в токене могла устареть: auth меняет роль
+  // (например, на business после регистрации бизнеса), но в токен она попадает только после refresh
   if (
-    error.response?.status !== 401 ||
+    (status !== 401 && status !== 403) ||
     original?._retry ||
     original?.url?.includes("/auth/refresh")
   ) {
@@ -62,7 +65,7 @@ api.interceptors.response.use(null, async (error) => {
     await refreshAccessToken();
     return api(original);
   } catch {
-    useAuthStore.getState().clearTokens();
+    if (status === 401) useAuthStore.getState().clearTokens();
     return Promise.reject(error);
   }
 });

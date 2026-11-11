@@ -53,3 +53,25 @@ export interface Like {
 }
 
 export type LikesResponse = Like[]
+
+export interface FeedbackRequest {
+  productId: string,
+  score: number,
+  description?: string
+}
+
+export interface Feedback {
+  id: string,
+  userId: string,
+  productId: string,
+  score: number,
+  description?: string,
+  createdAt: string
+}
+
+export type FeedbackResponse = Feedback
+
+export interface FeedbacksResponse {
+  feedbacks: Feedback[],
+  nextCursor?: string
+}

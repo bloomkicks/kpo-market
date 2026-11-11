@@ -1,6 +1,6 @@
 import { useMutation } from '@tanstack/react-query';
-import type { RegisterBusinessRequest, RegisterBusinessResponse, ProfileResponse } from '../types';
-import { api } from '@/api/client';
+import type { RegisterBusinessRequest, RegisterBusinessResponse } from '../types';
+import { api, refreshAccessToken } from '@/api/client';
 import { queryClient } from '@/api/query-client';
 
 export const useRegisterBusiness = () => {
@@ -9,10 +9,11 @@ export const useRegisterBusiness = () => {
       const response = await api.post<RegisterBusinessResponse>("/profiles/business", data)
       return response.data
     },
-    onSuccess(updated) {
-      queryClient.setQueryData<ProfileResponse>(['profile'], (old) =>
-        old?.map((p) => p.id === updated.id ? updated : p)
-      )
+    async onSuccess() {
+      // бизнес-профиль создаётся рядом с клиентским, а не заменяет его - перечитываем список профилей
+      queryClient.invalidateQueries({ queryKey: ['profile'] })
+      // роль business попадает в токен только после refresh, без него ручки бизнеса отвечают 403
+      await refreshAccessToken().catch(() => undefined)
     }
   })
 }
